@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aeris Tools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  /* ---- palette, drawn from the glass "A" mark ---- */
+  --bg:#07040d;
+  --bg-deep:#040209;
+  --panel: rgba(150,110,255,.055);
+  --panel-solid:#120b1f;
+  --panel-2:#160e26;
+  --line: rgba(170,130,255,.16);
+  --line-strong: rgba(190,150,255,.30);
+  --text:#f3eefc;
+  --muted:#9c8fbd;
+  --muted-dim:#6d6288;
+
+  --violet:#7c3aed;      /* core body of the glass letter */
+  --violet-deep:#4c1d95; /* shadowed underside */
+  --magenta:#e879f9;     /* specular highlight streak */
+  --lilac:#c4b5fd;       /* soft rim light */
+
+  --green:#4ade80;
+  --red:#fb7185;
+  --radius-lg:20px;
+  --radius-md:14px;
+  --radius-sm:9px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;
+  background:
+    radial-gradient(700px 520px at 78% 18%, rgba(124,58,237,.22), transparent 65%),
+    radial-gradient(620px 500px at 56% 92%, rgba(232,121,249,.12), transparent 68%),
+    radial-gradient(520px 420px at 98% 82%, rgba(76,29,149,.24), transparent 70%),
+    radial-gradient(700px 500px at 18% -5%, rgba(124,58,237,.12), transparent 65%),
+    var(--bg);
+  overflow-x:hidden;
+}
+body:before,body:after{
+  content:"";position:fixed;pointer-events:none;z-index:0;filter:blur(70px);
+  border-radius:50%;opacity:.55;
+}
+body:before{width:420px;height:420px;right:-100px;top:18%;background:rgba(124,58,237,.20)}
+body:after{width:340px;height:340px;left:34%;bottom:-130px;background:rgba(232,121,249,.13)}
+h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+
+/* ---------- shell ---------- */
+.app{min-height:100vh;display:grid;grid-template-columns:250px minmax(0,1fr);position:relative;z-index:1}
+.sidebar{
+  position:sticky;top:0;height:100vh;padding:24px 14px;
+  background:linear-gradient(180deg,rgba(11,7,20,.94),rgba(7,4,16,.88));
+  border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:5;
+}
+.brand{display:flex;align-items:center;gap:12px;padding:2px 8px 22px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.brand-mark{width:38px;height:38px;flex:0 0 auto;position:relative}
+.brand-mark img{width:100%;height:100%;display:block;object-fit:contain}
+.brand strong{display:block;font-size:15px;letter-spacing:-.02em;font-weight:700}
+.brand span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;font-weight:500}
+
+.side-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim);padding:0 10px 9px}
+.skills{display:flex;flex-direction:column;gap:3px;overflow:auto;padding-right:2px}
+.skill{display:flex;align-items:center;gap:11px;min-height:44px;padding:7px 10px;border:1px solid transparent;border-radius:12px;background:transparent;cursor:pointer;transition:.16s ease;color:#b7aed4;text-align:left}
+.skill:hover{background:rgba(255,255,255,.035);color:var(--text)}
+.skill.active{background:linear-gradient(135deg, rgba(124,58,237,.28), rgba(232,121,249,.10));border-color:var(--line-strong);color:var(--text);box-shadow:0 0 0 1px rgba(124,58,237,.10) inset}
+.skill-icon{width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;font-size:10px;font-weight:700;color:#d9cdfb;
+  background:linear-gradient(155deg,#3a2266,#1c1130);border:1px solid rgba(190,150,255,.25);overflow:hidden}
+.skill-icon img{width:100%;height:100%;display:block;object-fit:contain;padding:3px}
+.skill.active .skill-icon{background:linear-gradient(155deg,var(--violet),#5b21b6);color:#fff;border-color:rgba(255,255,255,.25)}
+.skill-info{min-width:0}.skill b{display:block;font-size:12.5px;font-weight:600}.skill small{display:block;font-size:10px;color:var(--muted-dim);margin-top:2px}.skill.active small{color:#d3c4f7}
+
+.side-foot{margin-top:auto;padding:16px 10px 2px;color:var(--muted-dim);font-size:10.5px;line-height:1.6}
+
+.main{min-width:0;padding:38px 38px 70px;position:relative;isolation:isolate}
+.main:before{
+  content:"";position:absolute;width:720px;height:720px;right:-300px;top:70px;
+  background:radial-gradient(circle,rgba(124,58,237,.16),rgba(124,58,237,.05) 35%,transparent 70%);
+  filter:blur(18px);pointer-events:none;z-index:-1;
+}
+.main:after{
+  content:"A";position:absolute;right:3%;top:8%;font-family:"Space Grotesk",sans-serif;
+  font-size:620px;font-weight:700;line-height:1;color:rgba(124,58,237,.035);
+  text-shadow:0 0 80px rgba(124,58,237,.08);pointer-events:none;z-index:-1;
+}
+.content{max-width:1180px;margin:0 auto}
+
+.topbar{margin-bottom:28px;position:relative}
+.topbar-row{display:flex;align-items:flex-start;justify-content:space-between;gap:30px}
+.topbar-title{display:flex;align-items:center;gap:14px}
+.topbar-title img{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 8px 22px rgba(124,58,237,.30))}
+.topbar-badge{margin-top:2px;display:flex;align-items:center;gap:9px;padding:9px 13px;border:1px solid var(--line);border-radius:12px;background:rgba(12,7,24,.58);box-shadow:0 12px 30px rgba(10,0,25,.24);color:#c9baf1;font-size:10.5px;white-space:nowrap}
+.topbar-badge i{width:7px;height:7px;border-radius:50%;background:var(--magenta);box-shadow:0 0 12px rgba(232,121,249,.9)}
+.header-brand{display:flex;align-items:center;gap:14px}
+.header-brand img{width:46px;height:46px;object-fit:contain;flex:0 0 auto}
+.eyebrow{font-size:11px;font-weight:600;color:var(--magenta);margin-bottom:8px;letter-spacing:.01em}
+.topbar h1{margin:0;font-size:32px;letter-spacing:-.03em;line-height:1.08;font-weight:700}
+.topbar p{margin:9px 0 0;color:var(--muted);line-height:1.6;max-width:640px;font-size:13.5px}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.layout > .card{grid-column:1}
+
+/* ---------- glass card ---------- */
+.card{
+  position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  background:linear-gradient(175deg, rgba(150,110,255,.07), rgba(150,110,255,.02));
+  border:1px solid var(--line);
+  box-shadow:0 20px 50px rgba(10,0,25,.45), inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(6px);
+}
+.card:before{
+  content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg, transparent, rgba(232,121,249,.6), transparent);
+}
+.card-head{padding:20px 22px 16px;border-bottom:1px solid var(--line)}
+.card-head h2{font-size:15.5px;margin:0 0 4px;letter-spacing:-.01em;font-weight:600}
+.card-head p{margin:0;color:var(--muted-dim);font-size:11.5px;line-height:1.5}
+.card-body{padding:22px}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px 14px;margin-bottom:4px}
+.field{margin-bottom:2px}
+label{display:block;color:#c8bdea;font-size:10.5px;font-weight:600;letter-spacing:.02em;margin:0 0 7px}
+
+input,select{
+  width:100%;height:42px;border:1px solid var(--line);background:rgba(0,0,0,.28);
+  color:var(--text);border-radius:var(--radius-sm);padding:0 12px;outline:none;transition:.15s ease;
+}
+select{
+  appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:38px;
+  background-color:rgba(15,8,30,.72);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23c8bdea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:14px;
+}
+select option{background:#171022;color:#f4efff;}
+input:hover,select:hover{border-color:rgba(190,150,255,.4);background-color:rgba(20,10,38,.82)}
+input:focus,select:focus{border-color:var(--magenta);box-shadow:0 0 0 3px rgba(232,121,249,.14)}
+select:focus{background-color:rgba(20,10,38,.9)}
+
+.action-row{display:flex;gap:10px;align-items:center;margin-top:14px}
+.action-row button{flex:1}
+button.primary{
+  height:44px;border:1px solid rgba(232,121,249,.4);border-radius:var(--radius-sm);
+  background:linear-gradient(135deg, var(--violet), #a21caf);color:#fff;font-weight:600;font-size:13px;
+  box-shadow:0 10px 24px rgba(124,58,237,.28);transition:.15s ease;
+}
+button.primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+button.primary:active{transform:translateY(0)}
+
+.switch{display:flex;align-items:center;gap:9px;color:#c3b7e2;font-size:12.5px;margin:16px 0 4px;cursor:pointer}
+.switch input{width:16px;height:16px;accent-color:var(--magenta);margin:0}
+.switch span{color:var(--muted-dim);font-size:11px}
+.wisdom-panel{margin:16px 0 4px;padding:15px;border:1px solid var(--line);border-radius:var(--radius-md);background:linear-gradient(145deg,rgba(124,58,237,.10),rgba(232,121,249,.045));box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.wisdom-panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
+.wisdom-panel-head strong{display:block;font-size:12px;color:#eee7ff}
+.wisdom-panel-head span{display:block;margin-top:3px;color:var(--muted-dim);font-size:10px}
+.wisdom-total{min-width:64px;text-align:right}
+.wisdom-total span{font-size:9px!important;text-transform:uppercase;letter-spacing:.08em;margin:0!important}
+.wisdom-total b{display:block;color:#f0abff;font-size:17px;line-height:1.1;margin-top:2px}
+.wisdom-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wisdom-option{position:relative;display:flex;align-items:center;gap:10px;min-height:52px;padding:9px 10px;border:1px solid rgba(170,140,220,.16);border-radius:10px;background:rgba(0,0,0,.20);cursor:pointer;transition:.15s ease}
+.wisdom-option:hover{border-color:rgba(232,121,249,.35);background:rgba(124,58,237,.09)}
+.wisdom-option input{position:absolute;opacity:0;width:0;height:0}
+.checkmark{width:17px;height:17px;flex:0 0 17px;border:1px solid rgba(200,180,240,.35);border-radius:5px;background:rgba(0,0,0,.28);box-shadow:inset 0 1px 2px rgba(0,0,0,.25);position:relative}
+.wisdom-option input:checked + .checkmark{border-color:rgba(232,121,249,.8);background:linear-gradient(135deg,#7c3aed,#e879f9);box-shadow:0 0 12px rgba(232,121,249,.18)}
+.wisdom-option input:checked + .checkmark:after{content:"";position:absolute;left:5px;top:2px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.wisdom-copy{min-width:0}.wisdom-copy b{display:block;color:#e8e0fa;font-size:10.5px;font-weight:600}.wisdom-copy small{display:block;color:var(--muted-dim);font-size:9.5px;margin-top:2px;line-height:1.25}.wisdom-note{margin-top:10px;color:#8e82aa;font-size:9.5px}
+
+.results{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:20px}
+.stat{padding:14px;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:var(--radius-md)}
+.stat span{display:block;color:var(--muted-dim);font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+.stat strong{display:block;font-size:17px;letter-spacing:-.02em;margin-top:7px;white-space:nowrap;font-weight:600;
+  background:linear-gradient(135deg,#fff,var(--lilac));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+.progress-head{display:flex;justify-content:space-between;color:var(--muted-dim);font-size:10.5px;margin-top:20px}
+.bar{height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--violet),var(--magenta));transition:width .3s ease}
+
+.status{font-size:10.5px;color:var(--muted-dim);line-height:1.6;margin-top:12px}
+.status.ok{color:var(--green)}.status.err{color:var(--red)}
+
+/* ---------- bazaar card specifics ---------- */
+.auto-value{
+  height:auto;min-height:42px;display:flex;align-items:center;padding:10px 12px;
+  border:1px dashed var(--line-strong);border-radius:var(--radius-sm);
+  background:rgba(232,121,249,.05);font-size:12px;font-weight:600;color:var(--lilac);line-height:1.4;
+}
+
+.section-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-dim);margin:20px 0 4px;display:flex;align-items:center;gap:8px}
+.section-label:after{content:"";flex:1;height:1px;background:var(--line)}
+.hint{font-size:11px;color:var(--muted-dim);margin:2px 0 12px;line-height:1.5}
+
+.recipe-list{border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;background:rgba(0,0,0,.25);margin-top:2px}
+.recipe-steps{display:flex;flex-direction:column}
+.recipe-step{
+  display:grid;grid-template-columns:26px minmax(0,1fr) 18px minmax(0,1fr) auto;
+  gap:10px;align-items:center;padding:12px 13px;border-bottom:1px solid rgba(255,255,255,.05);
+}
+.recipe-step:last-child{border-bottom:0}
+.step-num{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;
+  background:linear-gradient(155deg,#3a2266,#1c1130);border:1px solid rgba(190,150,255,.25);font-size:9.5px;font-weight:700;color:#d9cdfb}
+.step-arrow{color:var(--muted-dim);text-align:center}
+.step-result{font-weight:600;font-size:11.5px;color:var(--text)}
+.step-result.muted{color:var(--muted-dim);font-weight:500}
+.step-xp{font-size:10px;color:var(--green);font-weight:700;white-space:nowrap;text-align:right}
+
+.costs{display:grid;gap:8px;margin-top:16px}
+.cost{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:12px 13px;border:1px solid var(--line);border-radius:var(--radius-sm);background:rgba(0,0,0,.25)}
+.cost span{color:var(--muted-dim);font-size:10.5px}
+.cost b{font-size:12px;color:var(--text);text-align:right;font-weight:600}
+
+.carp-recipe{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px;border:1px solid var(--line);border-radius:var(--radius-md);background:rgba(0,0,0,.25)}
+.carp-recipe-main{display:flex;align-items:center;gap:12px;min-width:0}.carp-recipe-main>div:last-child{min-width:0}.carp-recipe-main strong{display:block;font-size:12.5px}.carp-recipe-main span{display:block;color:var(--muted-dim);font-size:10.5px;margin-top:3px}.carp-recipe-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,#3a2266,#1c1130);border:1px solid var(--line-strong);font-size:17px;flex:0 0 auto}.carp-recipe-meta{text-align:right;white-space:nowrap}.carp-recipe-meta span{display:block;color:var(--muted-dim);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em}.carp-recipe-meta b{display:block;color:var(--lilac);font-size:13px;margin-top:4px}
+.profit-positive{color:var(--green)!important}.profit-negative{color:var(--red)!important}
+.carp-price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.carp-price-grid .cost{margin:0}
+
+/* ---------- ambient info card ---------- */
+.ambient{
+  position:relative;margin-top:205px;padding:22px;border-radius:18px;overflow:hidden;
+  background:linear-gradient(145deg,rgba(18,10,35,.72),rgba(7,4,16,.58));
+  border:1px solid rgba(190,150,255,.22);
+  box-shadow:0 22px 55px rgba(10,0,25,.42),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(12px);
+}
+.ambient:before{content:"";position:absolute;width:170px;height:170px;right:-70px;top:-70px;background:rgba(124,58,237,.22);filter:blur(30px);border-radius:50%}
+.ambient-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;margin-bottom:16px;background:linear-gradient(145deg,#8b5cf6,#a21caf);box-shadow:0 10px 25px rgba(124,58,237,.3);font-size:18px}
+.ambient h3{margin:0 0 9px;font-size:16px}
+.ambient p{margin:0;color:var(--muted);font-size:11.5px;line-height:1.65}
+.ambient .ambient-line{height:1px;background:var(--line);margin:18px 0 14px}
+.ambient small{color:var(--muted-dim);font-size:10px}
+
+@media(max-width:980px){
+  .app{grid-template-columns:200px minmax(0,1fr)}
+  .main{padding:30px 22px 60px}
+  .layout{grid-template-columns:1fr}
+  .layout > .card{grid-column:auto}
+  .ambient{margin-top:0}
+  .main:after{font-size:480px;right:-100px;top:16%}
+}
+@media(max-width:700px){
+  .topbar-row{display:block}
+  .topbar-badge{display:none}
+  .topbar-title img{width:40px;height:40px}
+}
+@media(max-width:700px){
+  .app{display:block}
+  .sidebar{position:relative;height:auto;padding:16px 14px}
+  .brand{padding:0 4px 14px;margin-bottom:14px}
+  .side-label{display:none}
+  .side-foot{display:none}
+  .skills{flex-direction:row;overflow-x:auto;padding-bottom:2px;gap:8px}
+  .skill{min-width:130px;min-height:46px}
+  .main{padding:24px 14px 45px}
+  .topbar h1{font-size:26px}
+  .fields{grid-template-columns:1fr}
+  .results{grid-template-columns:1fr 1fr}
+  .results .stat:last-child{grid-column:1/-1}
+  .recipe-step{grid-template-columns:26px minmax(0,1fr);gap:8px}
+  .step-arrow{display:none}
+  .step-result,.step-xp{grid-column:2;text-align:left}
+  .card-body{padding:17px}
+}
+@media(max-width:420px){
+  .results{grid-template-columns:1fr}
+  .results .stat:last-child{grid-column:auto}
+  .skill{min-width:120px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">
+      <img src="logo.png" alt="Aeris Tools logo">
+    </div>
+    <div><strong>Aeris Tools</strong><span>Hypixel SkyBlock</span></div>
+  </div>
+  <div class="side-label">Skills</div>
+  <nav class="skills" id="skills"></nav>
+  <div class="side-foot">Select a skill to load its level cap and XP table into the calculator.</div>
+</aside>
+
+<main class="main"><div class="content">
+  <header class="topbar">
+    <div class="topbar-row">
+      <div>
+        <div class="eyebrow">Hypixel SkyBlock</div>
+        <div class="topbar-title">
+          <img src="logo.png" alt="Aeris Tools logo">
+          <h1>Aeris Tools</h1>
+        </div>
+        <p>Choose a skill from the sidebar to calculate leveling time, or use live Bazaar pricing for Alchemy and Carpentry.</p>
+      </div>
+      <div class="topbar-badge"><i></i>Simple tools. Better progression.</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="card wisdom-global" id="wisdomCard">
+      <div class="card-head">
+        <h2>Skill Wisdom</h2>
+        <p>Set your Wisdom once and it applies to every skill calculator.</p>
+      </div>
+      <div class="card-body">
+        <div class="fields">
+          <div class="field"><label>Manual Wisdom</label><input id="wisdom" type="number" min="0" step="0.1" value="0" placeholder="0"></div>
+          <div class="field"><label>Total Wisdom</label><div class="auto-value" id="wisdomTotal">0 Wisdom</div></div>
+        </div>
+        <div class="wisdom-options">
+          <label class="wisdom-option"><input id="wisdomCookie" type="checkbox"><span class="checkmark"></span><span class="wisdom-copy"><b>Booster Cookie</b><small>+25 Wisdom to all skills</small></span></label>
+          <label class="wisdom-option"><input id="wisdomGodPot" type="checkbox"><span class="checkmark"></span><span class="wisdom-copy"><b>God Potion</b><small>+20 Wisdom to all skills</small></span></label>
+        </div>
+        <div class="wisdom-note">Manual Wisdom is for your gear, pet, accessories, reforges, and other skill-specific sources.</div>
+      </div>
+    </section>
+
+    <section class="card" id="timeCard">
+      <div class="card-head">
+        <h2>Time calculator</h2>
+        <p>Estimate how long it takes to reach a target level at your current XP rate.</p>
+      </div>
+      <div class="card-body">
+        <div class="fields">
+          <div class="field"><label>Current level</label><input id="current" type="number" min="0" value="25"></div>
+          <div class="field"><label>Desired level</label><input id="target" type="number" min="1" value="50"></div>
+          <div class="field"><label>Base XP / hour</label><input id="rate" type="number" min="0" step="1000" value="100000"></div>
+        </div>
+        <label class="switch"><input id="derpy" type="checkbox"> Derpy active <span>+50% Skill XP</span></label>
+        <div class="action-row"><button class="primary" onclick="calc()">Calculate time</button></div>
+
+        <div class="results">
+          <div class="stat"><span>XP remaining</span><strong id="xp">—</strong></div>
+          <div class="stat"><span>Effective XP / hr</span><strong id="xph">—</strong></div>
+          <div class="stat"><span>Time needed</span><strong id="time">—</strong></div>
+        </div>
+        <div class="progress-head"><span>Progress to target</span><span id="cap"></span></div>
+        <div class="bar"><i id="bar"></i></div>
+      </div>
+    </section>
+
+    <section class="card" id="bazaarCard" style="display:none">
+      <div class="card-head">
+        <h2>Bazaar cost tracker</h2>
+        <p>Price the selected Bazaar-based skill using live buy prices.</p>
+      </div>
+      <div class="card-body">
+        <div class="fields">
+          <div class="field"><label>Recipe length</label><select id="recipeLength"><option value="1">1 ingredient</option><option value="2" selected>2 ingredients</option><option value="3">3 ingredients</option></select></div>
+          <div class="field"><label>Current level</label><input id="costCurrent" type="number" min="0" value="0"></div>
+          <div class="field"><label>Desired level</label><input id="costTarget" type="number" min="1" value="50"></div>
+        </div>
+
+        <div class="section-label">Recipe</div>
+        <div class="hint">Choose ingredients in order — the list below shows what each step brews.</div>
+        <div class="fields" style="grid-template-columns:1fr">
+          <div class="field"><label>Ingredient 1</label><select id="product"><option value="ENCHANTED_OAK_LOG" selected>Enchanted Oak Log</option><option value="ENCHANTED_SPRUCE_LOG">Enchanted Spruce Log</option><option value="ENCHANTED_BIRCH_LOG">Enchanted Birch Log</option><option value="ENCHANTED_JUNGLE_LOG">Enchanted Jungle Log</option><option value="NETHER_STALK">Nether Wart</option><option value="ENCHANTED_SUGAR_CANE">Enchanted Sugar Cane</option><option value="SPIDER_EYE">Spider Eye</option><option value="ENCHANTED_SPIDER_EYE">Enchanted Spider Eye</option><option value="SUGAR_CANE">Sugar Cane</option><option value="ENCHANTED_BREAD">Enchanted Bread</option><option value="CARROT_ITEM">Carrot</option><option value="ENCHANTED_CARROT">Enchanted Carrot</option><option value="RAW_FISH">Raw Fish</option><option value="ENCHANTED_RAW_FISH">Enchanted Raw Fish</option></select></div>
+          <div id="ingredient2Wrap" class="field"><label>Ingredient 2</label><select id="product2"><option value="SPIDER_EYE" selected>Spider Eye</option><option value="ENCHANTED_GOLD_BLOCK">Enchanted Gold Block</option><option value="ENCHANTED_GOLD">Enchanted Gold Ingot</option><option value="GOLD_INGOT">Gold Ingot</option><option value="ENCHANTED_SUGAR_CANE">Enchanted Sugar Cane</option><option value="SUGAR_CANE">Sugar Cane</option><option value="ENCHANTED_FERMENTED_SPIDER_EYE">Enchanted Fermented Spider Eye</option><option value="FERMENTED_SPIDER_EYE">Fermented Spider Eye</option><option value="ENCHANTED_BLAZE_ROD">Enchanted Blaze Rod</option><option value="ENCHANTED_BLAZE_POWDER">Enchanted Blaze Powder</option><option value="BLAZE_POWDER">Blaze Powder</option><option value="ENCHANTED_MELON">Enchanted Glistering Melon</option><option value="GLISTERING_MELON">Glistering Melon</option><option value="ENCHANTED_SPIDER_EYE">Enchanted Spider Eye</option><option value="NETHER_STALK">Nether Wart</option></select></div>
+          <div id="ingredient3Wrap" class="field" style="display:none"><label>Ingredient 3</label><select id="product3"><option value="SUGAR_CANE">Sugar Cane</option><option value="ENCHANTED_SUGAR_CANE">Enchanted Sugar Cane</option><option value="ENCHANTED_GLOWSTONE_DUST">Enchanted Glowstone Dust</option><option value="ENCHANTED_GLOWSTONE">Enchanted Glowstone</option><option value="GLOWSTONE_DUST">Glowstone Dust</option><option value="REDSTONE">Redstone</option><option value="ENCHANTED_REDSTONE">Enchanted Redstone</option><option value="ENCHANTED_SPIDER_EYE">Enchanted Spider Eye</option><option value="NETHER_STALK">Nether Wart</option></select></div>
+        </div>
+
+        <div class="recipe-list"><div id="recipeSteps" class="recipe-steps"></div></div>
+        <div class="field" style="margin-top:12px"><div id="autoXp" class="auto-value">— XP / brew (3 potions)</div></div>
+
+        <label class="switch"><input id="costDerpy" type="checkbox"> Derpy active <span>+50% Skill XP</span></label>
+        <div class="action-row"><button class="primary" onclick="price()">Refresh Bazaar price</button></div>
+
+        <div class="costs">
+          <div class="cost"><span>XP needed</span><b id="costXp">—</b></div>
+          <div class="cost"><span>Brews needed</span><b id="crafts">—</b></div>
+          <div class="cost"><span>Live price / recipe</span><b id="unit">—</b></div>
+          <div class="cost"><span>Estimated total</span><b id="total">—</b></div>
+        </div>
+        <div id="apiStatus" class="status">Bazaar endpoint: not loaded yet.</div>
+      </div>
+    </section>
+
+    <section class="card" id="carpentryCard" style="display:none">
+      <div class="card-head">
+        <h2>Carpentry calculator</h2>
+        <p>Calculate Carpentry XP, crafts, and live Bazaar material cost. Carpentry XP is based on the NPC value of the materials used.</p>
+      </div>
+      <div class="card-body">
+        <div class="fields">
+          <div class="field"><label>Current level</label><input id="carpCurrent" type="number" min="0" max="50" value="0"></div>
+          <div class="field"><label>Desired level</label><input id="carpTarget" type="number" min="1" max="50" value="50"></div>
+          <div class="field"><label>Craft</label><select id="carpRecipe">
+            <option value="ENCHANTED_DIAMOND_BLOCK" selected>Enchanted Diamond Block</option>
+            <option value="ENCHANTED_GOLD_BLOCK">Enchanted Gold Block</option>
+            <option value="ENCHANTED_HAY_BLOCK">Enchanted Hay Bale</option>
+            <option value="FLAWLESS_RUBY">Flawless Ruby</option>
+            <option value="FLAWLESS_SAPPHIRE">Flawless Sapphire</option>
+            <option value="FLAWLESS_AMETHYST">Flawless Amethyst</option>
+            <option value="FLAWLESS_JASPER">Flawless Jasper</option>
+            <option value="FLAWLESS_TOPAZ">Flawless Topaz</option>
+            <option value="FLAWLESS_AMBER">Flawless Amber</option>
+          </select></div>
+        </div>
+
+        <label class="switch"><input id="carpDerpy" type="checkbox"> Derpy active <span>+50% Skill XP</span></label>
+
+        <div class="section-label">Craft details</div>
+        <div class="carp-recipe">
+          <div class="carp-recipe-main">
+            <div class="carp-recipe-icon" id="carpRecipeIcon">⛏</div>
+            <div><strong id="carpRecipeName">Enchanted Diamond Block</strong><span id="carpRecipeDesc">160 × Enchanted Diamond</span></div>
+          </div>
+          <div class="carp-recipe-meta"><span>XP / craft</span><b id="carpXpCraft">—</b></div>
+        </div>
+
+        <div class="action-row"><button class="primary" onclick="priceCarpentry()">Refresh Bazaar price</button></div>
+
+        <div class="results">
+          <div class="stat"><span>XP remaining</span><strong id="carpXpNeeded">—</strong></div>
+          <div class="stat"><span>Crafts needed</span><strong id="carpCrafts">—</strong></div>
+          <div class="stat"><span>Cost / craft</span><strong id="carpUnit">—</strong></div>
+        </div>
+
+        <div class="carp-price-grid">
+          <div class="cost"><span>Material cost / craft</span><b id="carpUnit">—</b></div>
+          <div class="cost"><span>Output insta-sell / craft</span><b id="carpSellUnit">—</b></div>
+          <div class="cost"><span>Total material cost</span><b id="carpTotal">—</b></div>
+          <div class="cost"><span>Total after selling</span><b id="carpRevenue">—</b></div>
+          <div class="cost"><span>Profit / loss</span><b id="carpProfit">—</b></div>
+          <div class="cost"><span>XP / coin</span><b id="carpEfficiency">—</b></div>
+          <div class="cost"><span>NPC value / craft</span><b id="carpNpc">—</b></div>
+        </div>
+        <div class="progress-head"><span>Progress to target</span><span id="carpCap">Lv 0 → 50 / 50</span></div>
+        <div class="bar"><i id="carpBar"></i></div>
+        <div id="carpStatus" class="status">Bazaar and item data: not loaded yet.</div>
+      </div>
+    </section>
+
+    <aside class="ambient">
+      <div class="ambient-icon">✦</div>
+      <h3>Level up faster</h3>
+      <p>Track your progress, plan your goals, and get the most out of your time in Hypixel SkyBlock.</p>
+      <div class="ambient-line"></div>
+      <small>Pick a skill from the sidebar to get started.</small>
+    </aside>
+  </div>
+</div></main>
+</div>
+
+<script>
+const XP=[0,50,175,375,675,1175,1925,2925,4425,6425,9925,14925,22425,32425,47425,67425,97425,147425,222425,322425,522425,822425,1222425,1722425,2322425,3022425,3822425,4722425,5722425,6822425,8022425,9322425,10722425,12222425,13822425,15522425,17322425,19222425,21222425,23322425,25522425,27822425,30222425,32722425,35322425,38072425,40972425,44072425,47472425,51172425,55172425,59472425,64072425,68972425,74172425,79672425,85472425,91572425,97972425,104672425,111672425];
+const skills=[['Farming',60,'time'],['Mining',60,'time'],['Combat',60,'time'],['Enchanting',60,'time'],['Taming',60,'time'],['Foraging',54,'time'],['Fishing',50,'time'],['Runecrafting',25,'time'],['Social',25,'time'],['Hunting',50,'time'],['Alchemy',50,'bazaar'],['Carpentry',50,'bazaar']];
+let selected='Farming';
+const el=id=>document.getElementById(id);
+const fmt=n=>new Intl.NumberFormat('en-US').format(Math.round(n));
+
+function renderSkills(){
+  el('skills').innerHTML=skills.map(([s,m])=>{
+    const iconFile=s.toLowerCase().replace(/\s+/g,'')+'.png';
+    return `<button type="button" class="skill ${s===selected?'active':''}" onclick="selectSkill('${s}')"><div class="skill-icon"><img src="${iconFile}" alt="${s} icon"></div><div class="skill-info"><b>${s}</b><small>Max ${m}</small></div></button>`;
+  }).join('');
+}
+function selectSkill(s){
+  selected=s;
+  const meta=skills.find(x=>x[0]===s), max=meta[1], type=meta[2];
+  el('timeCard').style.display=type==='time'?'block':'none';
+  el('bazaarCard').style.display=type==='bazaar'?'block':'none';
+  if(type==='time'){
+    el('current').value=Math.min(+el('current').value||0,max);
+    el('target').value=max;
+    calc();
+  }else if(s==='Alchemy'){
+    el('costTarget').value=max;
+    updateBazaarMode();
+    price();
+    updateRecipePreview();
+  }else{
+    el('carpTarget').value=max;
+    updateBazaarMode();
+    priceCarpentry();
+  }
+  renderSkills();
+}
+function getSkillWisdom(){
+  const manual=Math.max(0,Number(el('wisdom').value)||0);
+  const cookie=el('wisdomCookie').checked?25:0;
+  const godPot=el('wisdomGodPot').checked?20:0;
+  return manual+cookie+godPot;
+}
+function updateWisdomTotal(){
+  const total=getSkillWisdom();
+  el('wisdomTotal').textContent=total.toFixed(total%1?'1':'0')+' Wisdom';
+}
+
+function calc(){
+  const meta=skills.find(x=>x[0]===selected),max=meta[1];
+  let c=Math.max(0,Math.min(max,+el('current').value||0)),t=Math.max(c,Math.min(max,+el('target').value||max));
+  const wisdom=Math.max(0,+el('wisdom').value||0),base=Math.max(0,+el('rate').value||0),derpy=el('derpy').checked;
+  const remaining=Math.max(0,(XP[t]??XP[60])-(XP[c]??0));
+  const effective=base*(1+wisdom/100)*(derpy?1.5:1);
+  const hours=effective?remaining/effective:Infinity;
+  el('xp').textContent=fmt(remaining);
+  el('xph').textContent=fmt(effective);
+  el('time').textContent=Number.isFinite(hours)?formatTime(hours):'—';
+  el('bar').style.width=((XP[t]?(XP[c]/XP[t])*100:0)).toFixed(1)+'%';
+  el('cap').textContent=`Lv ${c} → ${t} / ${max}`;
+}
+function formatTime(h){
+  if(h<1)return Math.round(h*60)+' min';
+  let d=Math.floor(h/24);h-=d*24;let hr=Math.floor(h);let min=Math.round((h-hr)*60);
+  return (d?d+'d ':'')+hr+'h '+min+'m';
+}
+
+function updateBazaarMode(){
+  const carpentry=selected==='Carpentry';
+  el('timeCard').style.display=selected==='Farming'||skills.find(x=>x[0]===selected)?.[2]==='time'?'block':'none';
+  el('bazaarCard').style.display=selected==='Alchemy'?'block':'none';
+  el('carpentryCard').style.display=carpentry?'block':'none';
+  if(selected==='Alchemy'){
+    el('costTarget').value=50;
+    el('costCurrent').value=Math.min(+el('costCurrent').value||0,50);
+    el('recipeLength').dispatchEvent(new Event('change'));
+  }
+  if(carpentry){
+    el('carpTarget').value=50;
+    el('carpCurrent').value=Math.min(+el('carpCurrent').value||0,50);
+    updateCarpentryRecipe();
+  }
+}
+
+function lenIds(){
+  const ids=[el('product').value];
+  if(+el('recipeLength').value>=2)ids.push(el('product2').value);
+  if(+el('recipeLength').value>=3)ids.push(el('product3').value);
+  return ids;
+}
+el('recipeLength').addEventListener('change',()=>{
+  el('ingredient2Wrap').style.display=+el('recipeLength').value>=2?'block':'none';
+  el('ingredient3Wrap').style.display=+el('recipeLength').value>=3?'block':'none';
+  updateRecipePreview();
+});
+['costCurrent','costTarget','costDerpy'].forEach(id=>el(id).addEventListener('input',()=>{if(selected==='Alchemy')price();}));
+
+async function price(){
+  const status=el('apiStatus');
+  status.textContent='Loading live Bazaar data…';status.className='status';
+  try{
+    const r=await fetch('https://api.hypixel.net/v2/skyblock/bazaar');
+    if(!r.ok)throw Error('HTTP '+r.status);
+    const j=await r.json();
+    const target=Math.min(50,+el('costTarget').value||50);
+    const current=Math.min(target,+el('costCurrent').value||0);
+    const needed=Math.max(0,(XP[target]??XP[50])-(XP[current]??0));
+    const len=+el('recipeLength').value||1;
+    const ids=lenIds();
+    let unitTotal=0;
+    for(const id2 of ids){
+      const p2=j.products?.[id2];
+      if(p2)unitTotal+=p2.quick_status?.buyPrice??p2.quick_status?.sellPrice??0;
+    }
+    const xpIngredient=len>=2?ids[1]:ids[0];
+    const xpPerPotion=alchemyStep[xpIngredient]?.xp||0;
+    const xpPer=xpPerPotion*3*(1+getSkillWisdom()/100)*(el('costDerpy').checked?1.5:1);
+    if(!xpPer)throw Error('Choose a recipe with a known Alchemy XP value');
+    const crafts=Math.ceil(needed/xpPer);
+    el('costXp').textContent=fmt(needed);
+    el('crafts').textContent=fmt(crafts);
+    el('unit').textContent=unitTotal.toLocaleString(undefined,{maximumFractionDigits:2})+' coins / brew';
+    el('total').textContent=fmt(unitTotal*crafts)+' coins';
+    status.textContent='Live Bazaar data loaded successfully.';status.className='status ok';
+  }catch(e){
+    status.textContent='Could not load Bazaar data: '+e.message+'. If your browser blocks the request, run the site through a local web server or proxy the API through your backend.';
+    status.className='status err';
+  }
+}
+
+const carpentryRecipes={
+  ENCHANTED_DIAMOND_BLOCK:{name:'Enchanted Diamond Block',material:'ENCHANTED_DIAMOND',materialName:'Enchanted Diamond',qty:160,output:'ENCHANTED_DIAMOND_BLOCK'},
+  ENCHANTED_GOLD_BLOCK:{name:'Enchanted Gold Block',material:'ENCHANTED_GOLD',materialName:'Enchanted Gold',qty:160,output:'ENCHANTED_GOLD_BLOCK'},
+  ENCHANTED_HAY_BLOCK:{name:'Enchanted Hay Bale',material:'ENCHANTED_WHEAT',materialName:'Enchanted Wheat',qty:160,output:'ENCHANTED_HAY_BLOCK'},
+  FLAWLESS_RUBY:{name:'Flawless Ruby',material:'FINE_RUBY_GEM',materialName:'Fine Ruby Gemstone',qty:80,output:'FLAWLESS_RUBY_GEM'},
+  FLAWLESS_SAPPHIRE:{name:'Flawless Sapphire',material:'FINE_SAPPHIRE_GEM',materialName:'Fine Sapphire Gemstone',qty:80,output:'FLAWLESS_SAPPHIRE_GEM'},
+  FLAWLESS_AMETHYST:{name:'Flawless Amethyst',material:'FINE_AMETHYST_GEM',materialName:'Fine Amethyst Gemstone',qty:80,output:'FLAWLESS_AMETHYST_GEM'},
+  FLAWLESS_JASPER:{name:'Flawless Jasper',material:'FINE_JASPER_GEM',materialName:'Fine Jasper Gemstone',qty:80,output:'FLAWLESS_JASPER_GEM'},
+  FLAWLESS_TOPAZ:{name:'Flawless Topaz',material:'FINE_TOPAZ_GEM',materialName:'Fine Topaz Gemstone',qty:80,output:'FLAWLESS_TOPAZ_GEM'},
+  FLAWLESS_AMBER:{name:'Flawless Amber',material:'FINE_AMBER_GEM',materialName:'Fine Amber Gemstone',qty:80,output:'FLAWLESS_AMBER_GEM'}
+};
+let carpData={bazaar:null,items:null};
+function instantBuyPrice(product){
+  return Number(product?.sell_summary?.[0]?.pricePerUnit ?? product?.quick_status?.buyPrice ?? 0)||0;
+}
+function instantSellPrice(product){
+  return Number(product?.buy_summary?.[0]?.pricePerUnit ?? product?.quick_status?.sellPrice ?? 0)||0;
+}
+function updateCarpentryRecipe(){
+  const r=carpentryRecipes[el('carpRecipe').value];
+  if(!r)return;
+  el('carpRecipeName').textContent=r.name;
+  el('carpRecipeDesc').textContent=`${r.qty.toLocaleString()} × ${r.materialName}`;
+  el('carpRecipeIcon').textContent=r.name.includes('Gemstone')||r.name.includes('Ruby')||r.name.includes('Sapphire')||r.name.includes('Amethyst')||r.name.includes('Jasper')||r.name.includes('Topaz')||r.name.includes('Amber')?'◆':'⬢';
+  updateCarpentryResults();
+}
+function carpentryXpForRecipe(r){
+  const item=carpData.items?.find(x=>x.id===r.material);
+  const npc=Number(item?.npc_sell_price)||0;
+  const wisdom=getSkillWisdom();
+  const derpy=el('carpDerpy').checked?1.5:1;
+  return npc ? r.qty*npc*0.03*(1+wisdom/100)*derpy : 0;
+}
+function updateCarpentryResults(){
+  const r=carpentryRecipes[el('carpRecipe').value];
+  if(!r)return;
+  const current=Math.min(50,Math.max(0,Number(el('carpCurrent').value)||0));
+  const target=Math.max(current,Math.min(50,Number(el('carpTarget').value)||50));
+  const needed=Math.max(0,(XP[target]??XP[50])-(XP[current]??0));
+  const xpCraft=carpentryXpForRecipe(r);
+  const crafts=xpCraft?Math.ceil(needed/xpCraft):0;
+  el('carpXpCraft').textContent=xpCraft?fmt(xpCraft):'—';
+  el('carpXpNeeded').textContent=fmt(needed);
+  el('carpCrafts').textContent=xpCraft?fmt(crafts):'—';
+  el('carpCap').textContent=`Lv ${current} → ${target} / 50`;
+  el('carpBar').style.width=((XP[target]?(XP[current]/XP[target])*100:0)).toFixed(1)+'%';
+
+  const materialProduct=carpData.bazaar?.products?.[r.material];
+  const outputProduct=carpData.bazaar?.products?.[r.output];
+  const materialUnit=instantBuyPrice(materialProduct);
+  const outputUnit=instantSellPrice(outputProduct);
+  const materialCost=materialUnit*r.qty;
+  const totalCost=materialCost*crafts;
+  const totalRevenue=outputUnit*crafts;
+  const profit=totalRevenue-totalCost;
+  const npc=Number(carpData.items?.find(x=>x.id===r.material)?.npc_sell_price)||0;
+  const npcValue=npc*r.qty;
+
+  el('carpUnit').textContent=materialUnit?fmt(materialCost)+' coins':'—';
+  el('carpSellUnit').textContent=outputUnit?fmt(outputUnit)+' coins':'No insta-sell';
+  el('carpTotal').textContent=materialUnit&&crafts?fmt(totalCost)+' coins':'—';
+  el('carpRevenue').textContent=outputUnit&&crafts?fmt(totalRevenue)+' coins':'—';
+  const profitEl=el('carpProfit');
+  profitEl.classList.remove('profit-positive','profit-negative');
+  if(materialUnit&&outputUnit&&crafts){
+    profitEl.textContent=(profit>=0?'+':'')+fmt(profit)+' coins';
+    profitEl.classList.add(profit>=0?'profit-positive':'profit-negative');
+  }else profitEl.textContent='—';
+  el('carpNpc').textContent=npcValue?fmt(npcValue)+' coins':'—';
+  el('carpEfficiency').textContent=materialUnit&&xpCraft?(xpCraft/materialCost).toFixed(6)+' XP/coin':'—';
+}
+async function priceCarpentry(){
+  const status=el('carpStatus');
+  status.textContent='Loading live Bazaar + item data…';status.className='status';
+  const timeout=new AbortController();
+  const timer=setTimeout(()=>timeout.abort(),10000);
+  try{
+    const [bzRes,itemRes]=await Promise.all([
+      fetch('https://api.hypixel.net/v2/skyblock/bazaar',{signal:timeout.signal}),
+      fetch('https://api.hypixel.net/v2/resources/skyblock/items',{signal:timeout.signal})
+    ]);
+    if(!bzRes.ok)throw Error('Bazaar HTTP '+bzRes.status);
+    if(!itemRes.ok)throw Error('Item data HTTP '+itemRes.status);
+    carpData.bazaar=await bzRes.json();
+    const itemJson=await itemRes.json();
+    carpData.items=itemJson.items||[];
+    updateCarpentryResults();
+    const r=carpentryRecipes[el('carpRecipe').value];
+    const material=carpData.items.find(x=>x.id===r.material);
+    if(!material?.npc_sell_price)throw Error('NPC sell price not found for '+r.materialName);
+    const materialProduct=carpData.bazaar?.products?.[r.material];
+    if(!materialProduct)throw Error('Bazaar product not found for '+r.materialName);
+    const outputProduct=carpData.bazaar?.products?.[r.output];
+    status.textContent=outputProduct?'Live Bazaar + NPC data loaded.':'Live material pricing loaded; this output has no current Bazaar insta-sell listing.';
+    status.className='status '+(outputProduct?'ok':'');
+  }catch(e){
+    status.textContent=e.name==='AbortError'?'Carpentry price request timed out.':'Could not load Carpentry data: '+e.message;
+    status.className='status err';
+    updateCarpentryResults();
+  }finally{clearTimeout(timer)}
+}
+
+['current','target','rate','derpy'].forEach(id=>el(id).addEventListener('input',calc));
+['wisdom','wisdomCookie','wisdomGodPot'].forEach(id=>el(id).addEventListener('input',()=>{updateWisdomTotal();calc();if(selected==='Alchemy')price();if(selected==='Carpentry')updateCarpentryResults();}));
+['carpCurrent','carpTarget','carpDerpy'].forEach(id=>el(id).addEventListener('input',()=>{if(selected==='Carpentry')updateCarpentryResults();}));
+el('carpRecipe').addEventListener('change',()=>{updateCarpentryRecipe();priceCarpentry();});
+renderSkills();updateWisdomTotal();calc();updateBazaarMode();
+
+function recipeName(id){
+  const names={NETHER_STALK:'Nether Wart',SPIDER_EYE:'Spider Eye',ENCHANTED_SPIDER_EYE:'Enchanted Spider Eye',SUGAR_CANE:'Sugar Cane',ENCHANTED_SUGAR_CANE:'Enchanted Sugar Cane',CARROT_ITEM:'Carrot',ENCHANTED_CARROT:'Enchanted Carrot',ENCHANTED_BREAD:'Enchanted Bread',RAW_FISH:'Raw Fish',ENCHANTED_RAW_FISH:'Enchanted Raw Fish',ENCHANTED_GOLD_BLOCK:'Enchanted Gold Block',ENCHANTED_GOLD:'Enchanted Gold Ingot',GOLD_INGOT:'Gold Ingot',ENCHANTED_FERMENTED_SPIDER_EYE:'Enchanted Fermented Spider Eye',FERMENTED_SPIDER_EYE:'Fermented Spider Eye',ENCHANTED_BLAZE_ROD:'Enchanted Blaze Rod',ENCHANTED_BLAZE_POWDER:'Enchanted Blaze Powder',BLAZE_POWDER:'Blaze Powder',ENCHANTED_MELON:'Enchanted Glistering Melon',GLISTERING_MELON:'Glistering Melon Slice',ENCHANTED_GLOWSTONE_DUST:'Enchanted Glowstone Dust',ENCHANTED_GLOWSTONE:'Enchanted Glowstone',GLOWSTONE_DUST:'Glowstone Dust',REDSTONE:'Redstone',ENCHANTED_REDSTONE:'Enchanted Redstone'};
+  return names[id]||id;
+}
+const alchemyStep={NETHER_STALK:{result:'Awkward Potion',xp:5},SUGAR_CANE:{result:'Potion of Speed',xp:5},ENCHANTED_SUGAR_CANE:{result:'Potion of Speed V',xp:15000},SPIDER_EYE:{result:'Potion of Poison',xp:10},ENCHANTED_SPIDER_EYE:{result:'Potion of Poison III',xp:0},FERMENTED_SPIDER_EYE:{result:'Potion of Weakness',xp:10},ENCHANTED_FERMENTED_SPIDER_EYE:{result:'Potion of Weakness V',xp:15000},CARROT_ITEM:{result:'Potion of Night Vision',xp:10},ENCHANTED_CARROT:{result:'Potion of Night Vision III',xp:300},RAW_FISH:{result:'Potion of Water Breathing',xp:12},ENCHANTED_RAW_FISH:{result:'Potion of Water Breathing III',xp:600},GOLD_INGOT:{result:'Absorption Potion',xp:5},ENCHANTED_GOLD:{result:'Absorption III',xp:300},ENCHANTED_GOLD_BLOCK:{result:'Absorption V',xp:15000},ENCHANTED_BLAZE_POWDER:{result:'Strength III',xp:500},ENCHANTED_BLAZE_ROD:{result:'Strength V',xp:23000},BLAZE_POWDER:{result:'Strength I',xp:10},ENCHANTED_MELON:{result:'Healing V',xp:500},GLISTERING_MELON:{result:'Healing I',xp:50},ENCHANTED_BREAD:{result:'Potion',xp:0}};
+function resultAfter(ids,i){
+  if(i===0){return ids[0]==='NETHER_STALK'?'Awkward Potion':(alchemyStep[ids[0]]?.result||'—');}
+  const second=ids[i];
+  const combo={
+    'NETHER_STALK>ENCHANTED_GOLD_BLOCK':'Absorption V','NETHER_STALK>ENCHANTED_GOLD':'Absorption III','NETHER_STALK>GOLD_INGOT':'Absorption I',
+    'NETHER_STALK>ENCHANTED_SUGAR_CANE':'Speed V','NETHER_STALK>SUGAR_CANE':'Speed I','NETHER_STALK>SPIDER_EYE':'Poison I','NETHER_STALK>ENCHANTED_FERMENTED_SPIDER_EYE':'Weakness V','NETHER_STALK>FERMENTED_SPIDER_EYE':'Weakness I',
+    'NETHER_STALK>ENCHANTED_BLAZE_ROD':'Strength V','NETHER_STALK>ENCHANTED_BLAZE_POWDER':'Strength III','NETHER_STALK>BLAZE_POWDER':'Strength I','NETHER_STALK>ENCHANTED_MELON':'Healing V','NETHER_STALK>GLISTERING_MELON':'Healing I'
+  };
+  return combo[ids[0]+'>'+second]||alchemyStep[second]?.result||'—';
+}
+function updateRecipePreview(){
+  const len=+el('recipeLength').value||1;
+  const ids=[el('product').value];
+  if(len>=2)ids.push(el('product2').value);
+  if(len>=3)ids.push(el('product3').value);
+  let xp=0,xpSource='';
+  if(len>=2 && alchemyStep[ids[1]]){xp=alchemyStep[ids[1]].xp;xpSource=recipeName(ids[1]);}
+  else if(alchemyStep[ids[0]]){xp=alchemyStep[ids[0]].xp;xpSource=recipeName(ids[0]);}
+  el('recipeSteps').innerHTML=ids.map((id,i)=>{
+    const result=resultAfter(ids,i);
+    const stepXp=alchemyStep[id]?.xp||0;
+    return '<div class="recipe-step"><span class="step-num">'+(i+1)+'</span><span>'+recipeName(id)+'</span><span class="step-arrow">→</span><span class="step-result '+(result==='—'?'muted':'')+'">'+result+'</span><span class="step-xp">'+(i===1?'+'+stepXp.toLocaleString()+' XP':'')+'</span></div>';
+  }).join('');
+  el('autoXp').textContent=(xp*3).toLocaleString()+' XP / brew (3 potions)'+(xpSource?' · from '+xpSource:'');
+}
+['recipeLength','product','product2','product3'].forEach(id=>el(id).addEventListener('change',updateRecipePreview));
+updateRecipePreview();
+</script>
+</body>
+</html>
